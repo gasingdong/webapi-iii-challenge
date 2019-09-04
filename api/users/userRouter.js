@@ -1,9 +1,11 @@
 const express = require('express');
 const userDb = require('./userDb');
+const postDB = require('../posts/postDb');
 
 const router = express.Router();
 
 const validateUser = (req, res, next) => {
+  console.log('validating user');
   if (!req.body) {
     res.status(400).json({ error: 'Request body is empty.' });
     return;
@@ -67,16 +69,14 @@ const validatePost = (req, res, next) => {
   const { text } = req.body;
 
   // eslint-disable-next-line camelcase
-  if (text && user_id) {
+  if (text) {
     (async () => {
       try {
-        const user = await userDb.getById(user_id);
-        if (user) {
-        } else {
-          res
-            .status(404)
-            .json({ error: 'A user with that id does not exist.' });
-        }
+        req.post = {
+          text,
+          user_id: req.user.id,
+        };
+        next();
       } catch (err) {
         res
           .status(500)
@@ -84,7 +84,7 @@ const validatePost = (req, res, next) => {
       }
     })();
   } else {
-    res.status(400).json({ error: 'All users require a unique name.' });
+    res.status(400).json({ error: 'All posts require text content.' });
   }
 };
 
@@ -153,6 +153,15 @@ router
       }
     })();
   })
-  .post(validatePost, (req, res) => {});
+  .post(validatePost, (req, res) => {
+    (async () => {
+      try {
+        const response = await postDB.insert(req.post);
+        res.status(200).json(response);
+      } catch (err) {
+        res.status(500).json({ error: 'Error while creating new post.' });
+      }
+    })();
+  });
 
 module.exports = router;
