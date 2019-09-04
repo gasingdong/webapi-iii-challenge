@@ -4,7 +4,6 @@ const userDb = require('./userDb');
 const router = express.Router();
 
 const validateUser = (req, res, next) => {
-  console.log(req);
   if (!req.body) {
     res.status(400).json({ error: 'Request body is empty.' });
     return;
@@ -31,6 +30,31 @@ const validateUser = (req, res, next) => {
     })();
   } else {
     res.status(400).json({ error: 'All users require a unique name.' });
+  }
+};
+
+const validateUserId = (req, res, next) => {
+  const id = Number(req.params.id);
+
+  if (Number.isNaN(id) || !Number.isFinite(id)) {
+    res.status(400).json({ error: 'The id is not a valid number.' });
+  } else {
+    (async () => {
+      try {
+        const user = await userDb.getById(id);
+
+        if (user) {
+          req.user = user;
+          next();
+        } else {
+          res.status(404).json({ error: 'There is no user with that id.' });
+        }
+      } catch (err) {
+        res
+          .status(500)
+          .json({ error: 'Error occurred while retrieving user.' });
+      }
+    })();
   }
 };
 
@@ -61,21 +85,33 @@ router
     })();
   });
 
-router.post('/', (req, res) => {});
+router
+  .route('/:id')
+  .all(validateUserId)
+  .get((req, res) => {
+    res.status(200).json(req.user);
+  })
+  .delete((req, res) => {
+    const { id } = req.user;
+    (async () => {
+      try {
+        const deleted = await userDb.remove(id);
+
+        if (deleted) {
+          res.status(200).json(req.user);
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        res.status(500).json({ error: 'Error deleting user.' });
+      }
+    })();
+  })
+  .put((req, res) => {});
 
 router.post('/:id/posts', (req, res) => {});
 
-router.get('/:id', (req, res) => {});
-
 router.get('/:id/posts', (req, res) => {});
-
-router.delete('/:id', (req, res) => {});
-
-router.put('/:id', (req, res) => {});
-
-// custom middleware
-
-function validateUserId(req, res, next) {}
 
 function validatePost(req, res, next) {}
 
