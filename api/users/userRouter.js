@@ -89,17 +89,17 @@ router.use(express.json());
 
 router
   .route('/')
-  .get((req, res) => {
+  .get((req, res, next) => {
     (async () => {
       try {
         const users = await userDb.get();
         res.status(200).json(users);
       } catch (err) {
-        res.status(500).json({ error: 'The server could not retrieve users.' });
+        next(err);
       }
     })();
   })
-  .post(validateUser, (req, res) => {
+  .post(validateUser, (req, res, next) => {
     (async () => {
       try {
         const { name } = req.body;
@@ -108,9 +108,7 @@ router
         });
         res.status(200).json(user);
       } catch (err) {
-        res
-          .status(500)
-          .json({ error: 'Error occurred while creating new user.' });
+        next(err);
       }
     })();
   });
@@ -121,7 +119,7 @@ router
   .get((req, res) => {
     res.status(200).json(req.user);
   })
-  .delete((req, res) => {
+  .delete((req, res, next) => {
     const { id } = req.user;
     (async () => {
       try {
@@ -133,11 +131,11 @@ router
           throw new Error();
         }
       } catch (err) {
-        res.status(500).json({ error: 'Error deleting user.' });
+        next(err);
       }
     })();
   })
-  .put(validateUser, (req, res) => {
+  .put(validateUser, (req, res, next) => {
     (async () => {
       try {
         const { id } = req.user;
@@ -155,7 +153,7 @@ router
           throw new Error();
         }
       } catch (err) {
-        res.status(500).json({ error: 'Error updating user.' });
+        next(err);
       }
     })();
   });
@@ -163,26 +161,35 @@ router
 router
   .route('/:id/posts')
   .all(validateUserId)
-  .get((req, res) => {
+  .get((req, res, next) => {
     (async () => {
       try {
         const { id } = req.user;
         const userPosts = await userDb.getUserPosts(id);
         res.status(200).json(userPosts);
       } catch (err) {
-        res.status(500).json({ error: 'Error retrieving user posts.' });
+        next(err);
       }
     })();
   })
-  .post(validatePost, (req, res) => {
+  .post(validatePost, (req, res, next) => {
     (async () => {
       try {
         const response = await postDB.insert(req.post);
         res.status(200).json(response);
       } catch (err) {
-        res.status(500).json({ error: 'Error while creating new post.' });
+        next(err);
       }
     })();
   });
+
+const userErrorHandler = (err, req, res, next) => {
+  if (res.headersSent) {
+    next(err);
+  }
+  res.status(500).json({ error: 'Error while processing user operation.' });
+};
+
+router.use(userErrorHandler);
 
 module.exports = router;
