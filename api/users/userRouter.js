@@ -19,9 +19,6 @@ const validateUser = (req, res, next) => {
         if (users.find(user => user.name === name)) {
           res.status(400).json({ error: 'Name already exists.' });
         } else {
-          req.user = {
-            name,
-          };
           next();
         }
       } catch (err) {
@@ -105,7 +102,10 @@ router
   .post(validateUser, (req, res) => {
     (async () => {
       try {
-        const user = await userDb.insert(req.user);
+        const { name } = req.body;
+        const user = await userDb.insert({
+          name,
+        });
         res.status(200).json(user);
       } catch (err) {
         res
@@ -137,7 +137,28 @@ router
       }
     })();
   })
-  .put((req, res) => {});
+  .put(validateUser, (req, res) => {
+    (async () => {
+      try {
+        const { id } = req.user;
+        const { name } = req.body;
+        const updated = await userDb.update(id, {
+          name,
+        });
+
+        if (updated) {
+          res.status(200).json({
+            id,
+            name,
+          });
+        } else {
+          throw new Error();
+        }
+      } catch (err) {
+        res.status(500).json({ error: 'Error updating user.' });
+      }
+    })();
+  });
 
 router
   .route('/:id/posts')
