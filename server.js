@@ -1,15 +1,18 @@
-const express = 'express';
+const express = require('express');
+const apiRoutes = require('./api/apiRouter');
 
 const server = express();
 
-server.get('/', (req, res) => {
-  res.send(`<h2>Let's write some middleware!</h2>`)
-});
-
-//custom middleware
-
-function logger(req, res, next) {
-
+const logger = (req, res, next) => {
+  console.log(
+    `[${new Date().toISOString()}] ${req.method} to ${req.url} from ${req.get(
+      'Origin'
+    )}`
+  );
+  next();
 };
+
+server.use(logger);
+server.use('/api', apiRoutes);
 
 module.exports = server;
