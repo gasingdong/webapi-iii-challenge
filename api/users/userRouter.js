@@ -58,6 +58,36 @@ const validateUserId = (req, res, next) => {
   }
 };
 
+const validatePost = (req, res, next) => {
+  if (!req.body) {
+    res.status(400).json({ error: 'Request body is empty.' });
+    return;
+  }
+  // eslint-disable-next-line camelcase
+  const { text } = req.body;
+
+  // eslint-disable-next-line camelcase
+  if (text && user_id) {
+    (async () => {
+      try {
+        const user = await userDb.getById(user_id);
+        if (user) {
+        } else {
+          res
+            .status(404)
+            .json({ error: 'A user with that id does not exist.' });
+        }
+      } catch (err) {
+        res
+          .status(500)
+          .json({ error: 'Error occurred while validating user.' });
+      }
+    })();
+  } else {
+    res.status(400).json({ error: 'All users require a unique name.' });
+  }
+};
+
 router.use(express.json());
 
 router
@@ -109,10 +139,20 @@ router
   })
   .put((req, res) => {});
 
-router.post('/:id/posts', (req, res) => {});
-
-router.get('/:id/posts', (req, res) => {});
-
-function validatePost(req, res, next) {}
+router
+  .route('/:id/posts')
+  .all(validateUserId)
+  .get((req, res) => {
+    (async () => {
+      try {
+        const { id } = req.user;
+        const userPosts = await userDb.getUserPosts(id);
+        res.status(200).json(userPosts);
+      } catch (err) {
+        res.status(500).json({ error: 'Error retrieving user posts.' });
+      }
+    })();
+  })
+  .post(validatePost, (req, res) => {});
 
 module.exports = router;
