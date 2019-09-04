@@ -22,9 +22,7 @@ const validateUser = (req, res, next) => {
           next();
         }
       } catch (err) {
-        res
-          .status(500)
-          .json({ error: 'Error occurred while validating user.' });
+        next(err);
       }
     })();
   } else {
@@ -49,9 +47,7 @@ const validateUserId = (req, res, next) => {
           res.status(404).json({ error: 'There is no user with that id.' });
         }
       } catch (err) {
-        res
-          .status(500)
-          .json({ error: 'Error occurred while retrieving user.' });
+        next(err);
       }
     })();
   }
@@ -75,9 +71,7 @@ const validatePost = (req, res, next) => {
         };
         next();
       } catch (err) {
-        res
-          .status(500)
-          .json({ error: 'Error occurred while validating user.' });
+        next(err);
       }
     })();
   } else {

@@ -20,9 +20,7 @@ const validatePostId = (req, res, next) => {
           res.status(404).json({ error: 'There is no post with that id.' });
         }
       } catch (err) {
-        res
-          .status(500)
-          .json({ error: 'Error occurred while retrieving post.' });
+        next(err);
       }
     })();
   }
@@ -42,9 +40,7 @@ const validatePost = (req, res, next) => {
       try {
         next();
       } catch (err) {
-        res
-          .status(500)
-          .json({ error: 'Error occurred while validating user.' });
+        next(err);
       }
     })();
   } else {
@@ -56,13 +52,13 @@ const validatePost = (req, res, next) => {
 
 router.use(express.json());
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
   (async () => {
     try {
       const posts = await postDb.get();
       res.status(200).json(posts);
     } catch (err) {
-      res.status(500).json({ error: 'The server could not retrieve posts.' });
+      next(err);
     }
   })();
 });
@@ -73,7 +69,7 @@ router
   .get((req, res) => {
     res.status(200).json(req.post);
   })
-  .delete((req, res) => {
+  .delete((req, res, next) => {
     (async () => {
       try {
         const { id } = req.post;
@@ -85,11 +81,11 @@ router
           throw new Error();
         }
       } catch (err) {
-        res.status(500).json({ error: 'Error occured while deleting post.' });
+        next(err);
       }
     })();
   })
-  .put(validatePost, (req, res) => {
+  .put(validatePost, (req, res, next) => {
     (async () => {
       try {
         const { id } = req.post;
@@ -109,9 +105,18 @@ router
           });
         }
       } catch (err) {
-        res.status(500).json({ error: 'Error occured while updating post.' });
+        next(err);
       }
     })();
   });
+
+const postErrorHandler = (err, req, res, next) => {
+  if (res.headersSent) {
+    next(err);
+  }
+  res.status(500).json({ error: 'Error while processing post operation.' });
+};
+
+router.use(postErrorHandler);
 
 module.exports = router;
