@@ -120,4 +120,4 @@ const postErrorHandler = (err, req, res, next) => {
 
 router.use(postErrorHandler);
 
-module.exports = router;
+export default router;

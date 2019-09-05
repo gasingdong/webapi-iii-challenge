@@ -1,11 +1,10 @@
-const express = require('express');
-const userDb = require('./userDb');
-const postDB = require('../posts/postDb');
+import express, { Request, Response, NextFunction, ErrorRequestHandler } from "express";
+import userDb from './userDb';
+import postDB from '../posts/postDb';
 
 const router = express.Router();
 
-const validateUser = (req, res, next) => {
-  console.log('validating user');
+const validateUser = (req: Request, res: Response, next: NextFunction) => {
   if (!req.body) {
     res.status(400).json({ error: 'Request body is empty.' });
     return;
@@ -30,7 +29,7 @@ const validateUser = (req, res, next) => {
   }
 };
 
-const validateUserId = (req, res, next) => {
+const validateUserId = (req: Request, res: Response, next: NextFunction) => {
   const id = Number(req.params.id);
 
   if (Number.isNaN(id) || !Number.isFinite(id)) {
@@ -53,7 +52,7 @@ const validateUserId = (req, res, next) => {
   }
 };
 
-const validatePost = (req, res, next) => {
+const validatePost = (req: Request, res: Response, next: NextFunction) => {
   if (!req.body) {
     res.status(400).json({ error: 'Request body is empty.' });
     return;
@@ -177,7 +176,7 @@ router
     })();
   });
 
-const userErrorHandler = (err, req, res, next) => {
+const userErrorHandler = (err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
   if (res.headersSent) {
     next(err);
   }
@@ -187,4 +186,4 @@ const userErrorHandler = (err, req, res, next) => {
 
 router.use(userErrorHandler);
 
-module.exports = router;
+export default router;

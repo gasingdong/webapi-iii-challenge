@@ -1,9 +1,11 @@
 module.exports = {
-	"extends": [
-		"eslint:recommended",
-		"airbnb-base",
-		"plugin:prettier/recommended",
-	],
+	"parser":  "@typescript-eslint/parser",
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "airbnb-typescript/base",
+    "prettier/@typescript-eslint",
+	  "plugin:prettier/recommended",
+  ],
 	"parserOptions": {
 		"ecmaVersion": 2018,
 		"sourceType": "module",
