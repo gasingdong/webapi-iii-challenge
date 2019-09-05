@@ -1,4 +1,4 @@
-const db = require('../../data/dbConfig.js');
+import db from '../../data/dbConfig';
 
 function get() {
   return db('users');
