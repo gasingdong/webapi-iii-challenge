@@ -2,25 +2,18 @@ import { QueryBuilder } from 'knex';
 import db from '../../data/dbConfig';
 
 const get = (): QueryBuilder<{}, {}> => {
-  return db('users');
+  return db('posts');
 };
 
 const getById = (id: number): QueryBuilder<{}, {}> => {
-  return db('users')
+  return db('posts')
     .where({ id })
     .first();
 };
 
-const getUserPosts = (userId: number): QueryBuilder<{}, {}> => {
-  return db('posts as p')
-    .join('users as u', 'u.id', 'p.user_id')
-    .select('p.id', 'p.text', 'u.name as postedBy')
-    .where('p.user_id', userId);
-};
-
-const insert = (user: { name: string }): Promise<{}> => {
-  return db('users')
-    .insert(user)
+const insert = (post: { text: string; user_id: number }): Promise<{}> => {
+  return db('posts')
+    .insert(post)
     .then(ids => {
       return getById(ids[0]);
     });
@@ -28,15 +21,15 @@ const insert = (user: { name: string }): Promise<{}> => {
 
 const update = (
   id: number,
-  changes: { name: string }
-): QueryBuilder<{}, number> => {
-  return db('users')
+  changes: { text?: string; user_id?: number }
+): QueryBuilder<{}, {}> => {
+  return db('posts')
     .where({ id })
     .update(changes);
 };
 
 const remove = (id: number): QueryBuilder<{}, number> => {
-  return db('users')
+  return db('posts')
     .where('id', id)
     .del();
 };
@@ -44,7 +37,6 @@ const remove = (id: number): QueryBuilder<{}, number> => {
 export default {
   get,
   getById,
-  getUserPosts,
   insert,
   update,
   remove,

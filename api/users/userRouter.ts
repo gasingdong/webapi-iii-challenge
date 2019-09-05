@@ -30,7 +30,7 @@ const validateUser = async (
 
   if (name) {
     try {
-      const users = await userDb.get();
+      const users = (await userDb.get()) as User[];
       if (users.find((user: User) => user.name === name)) {
         res.status(400).json({ error: 'Name already exists.' });
       } else {
@@ -55,7 +55,7 @@ const validateUserId = async (
     res.status(400).json({ error: 'The id is not a valid number.' });
   } else {
     try {
-      const user = await userDb.getById(id);
+      const user = (await userDb.getById(id)) as User;
 
       if (user) {
         req.user = user;
@@ -175,7 +175,7 @@ router
       const { text } = req.body;
       const response = await postDB.insert({
         text,
-        user_id: id,
+        user_id: Number(id),
       });
       res.status(200).json(response);
     } catch (err) {
